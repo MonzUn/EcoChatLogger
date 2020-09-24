@@ -1,0 +1,9 @@
+{
+  "profiles": {
+    "EcoChatLogger": {
+      "commandName": "Executable",
+      "executablePath": "$(SolutionDir)..\\EcoServer\\EcoServer.exe",
+      "workingDirectory": "$(SolutionDir)..\\EcoServer"
+    }
+  }
+}

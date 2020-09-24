@@ -1,0 +1,4 @@
+﻿*.dll
+/.vs
+/EcoChatLogger/bin
+/EcoChatLogger/obj
