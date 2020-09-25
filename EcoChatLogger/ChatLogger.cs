@@ -9,15 +9,15 @@ namespace Eco.Plugins.ChatLoger
 {
     public class ChatLogger : IModKitPlugin, IInitializablePlugin, IShutdownablePlugin, IGameActionAware
     {
-        private const int CHATLOG_FLUSH_TIMER_INTERAVAL_MS = 60000; // 1 minute interval
         public static string BasePath { get { return Directory.GetCurrentDirectory() + "\\Mods\\ChatLogger\\"; } }
 
         // Eco tag matching regex: Match all characters that are used to create HTML style tags
         private static readonly Regex HTMLTagRegex = new Regex("<[^>]*>");
+        private const int CHATLOG_FLUSH_TIMER_INTERAVAL_MS = 60000; // 1 minute interval
 
         private string Status = "Uninitialized";
-
         private ChatLogWriter Writer = null;
+        private int CurrentDay = -1;
 
         public override string ToString()
         {
@@ -32,15 +32,14 @@ namespace Eco.Plugins.ChatLoger
         public void Initialize(TimedTask timer)
         {
             ActionUtil.AddListener(this);
+            CurrentDay = (int)Simulation.Time.WorldTime.Day;
+            StartLogging();
             Status = "Running";
-
-            Writer = new ChatLogWriter(BasePath + "ChatLog.txt", 0, CHATLOG_FLUSH_TIMER_INTERAVAL_MS);
-            Writer.Initialize();
         }
 
         public void Shutdown()
         {
-            Writer.Shutdown();
+            StopLogging();
             Status = "Shutdown";
         }
 
@@ -62,8 +61,33 @@ namespace Eco.Plugins.ChatLoger
             return new Result(ResultType.None);
         }
 
+        private void StartLogging()
+        {
+            Writer = new ChatLogWriter(BasePath + "//Logs//Day " + CurrentDay + ".txt", 0, CHATLOG_FLUSH_TIMER_INTERAVAL_MS);
+            Writer.Initialize();
+        }
+
+        private void StopLogging()
+        {
+            Writer.Shutdown();
+        }
+
+        private void RestartLogging()
+        {
+            StopLogging();
+            StartLogging();
+        }
+
         private void LogMessage(string message)
         {
+            // Split log files into one per day
+            int day = (int)Simulation.Time.WorldTime.Day;
+            if (CurrentDay < day)
+            {
+                CurrentDay = day;
+                RestartLogging();
+            }
+
             Writer.Write(message);
         }
 
