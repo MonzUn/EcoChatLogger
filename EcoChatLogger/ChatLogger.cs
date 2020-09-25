@@ -1,12 +1,9 @@
 ﻿using Eco.Core.Plugins.Interfaces;
 using Eco.Core.Utils;
 using Eco.Gameplay.GameActions;
-using Eco.Plugins.ChatLoger.Utilities;
-using Eco.Plugins.ChatLogger.Utilities;
-using System;
+using Eco.Plugins.ChatLogger;
 using System.IO;
 using System.Text.RegularExpressions;
-using System.Threading;
 
 namespace Eco.Plugins.ChatLoger
 {
@@ -19,8 +16,8 @@ namespace Eco.Plugins.ChatLoger
         private static readonly Regex HTMLTagRegex = new Regex("<[^>]*>");
 
         private string Status = "Uninitialized";
-        private StreamWriter Writer = null;
-        private Timer FlushTimer = null;
+
+        private ChatLogWriter Writer = null;
 
         public override string ToString()
         {
@@ -34,20 +31,16 @@ namespace Eco.Plugins.ChatLoger
 
         public void Initialize(TimedTask timer)
         {
-            StartLogging(BasePath + "Logs\\", "Log.txt");
             ActionUtil.AddListener(this);
-
-            FlushTimer = new Timer(innerArgs =>
-            {
-                Flush();
-            }, null, 0, CHATLOG_FLUSH_TIMER_INTERAVAL_MS);
-
             Status = "Running";
+
+            Writer = new ChatLogWriter(BasePath + "ChatLog.txt", 0, CHATLOG_FLUSH_TIMER_INTERAVAL_MS);
+            Writer.Initialize();
         }
 
         public void Shutdown()
         {
-            StopLogging();
+            Writer.Shutdown();
             Status = "Shutdown";
         }
 
@@ -56,7 +49,7 @@ namespace Eco.Plugins.ChatLoger
             switch (action)
             {
                 case ChatSent chatSent:
-                    Write($"{StripTags(chatSent.Citizen.Name) + ": " + StripTags(chatSent.Message)}");
+                    LogMessage($"{StripTags(chatSent.Citizen.Name) + ": " + StripTags(chatSent.Message)}");
                     break;
 
                 default:
@@ -69,56 +62,9 @@ namespace Eco.Plugins.ChatLoger
             return new Result(ResultType.None);
         }
 
-        private void StartLogging(string path, string fileName)
+        private void LogMessage(string message)
         {
-            if (Writer != null)
-            {
-                StopLogging();
-            }
-
-            try
-            {
-                SystemUtil.EnsurePathExists(path);
-                Writer = new StreamWriter(path + fileName, append: true);
-            }
-            catch (Exception e)
-            {
-                Logger.Error("Error occurred while attempting to start the file writer. Error message: " + e);
-            }
-        }
-
-        private void StopLogging()
-        {
-            if (Writer == null) return;
-
-            SystemUtil.StopAndDestroyTimer(ref FlushTimer);
-            try
-            {
-                Writer.Flush();
-                Writer.Close();
-            }
-            catch (Exception e)
-            {
-                Logger.Error("Error occurred while attempting to close the file writer. Error message: " + e);
-            }
-            Writer = null;
-        }
-
-        private void Write(string message)
-        {
-            Writer.WriteLine(message);
-        }
-
-        private void Flush()
-        {
-            try
-            {
-                Writer.Flush();
-            }
-            catch (Exception e)
-            {
-                Logger.Error("Error occurred while attempting to write a chatlog to file. Error message: " + e);
-            }
+            Writer.Write(message);
         }
 
         private string StripTags(string toStrip)
