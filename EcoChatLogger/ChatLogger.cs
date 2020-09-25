@@ -2,6 +2,7 @@
 using Eco.Core.Utils;
 using Eco.Gameplay.GameActions;
 using Eco.Plugins.ChatLogger;
+using System.Collections.Generic;
 using System.IO;
 using System.Text.RegularExpressions;
 
@@ -16,7 +17,7 @@ namespace Eco.Plugins.ChatLoger
         private const int CHATLOG_FLUSH_TIMER_INTERAVAL_MS = 60000; // 1 minute interval
 
         private string Status = "Uninitialized";
-        private ChatLogWriter Writer = null;
+        private Dictionary<string, ChatLogWriter> ChatChannelWriters = new Dictionary<string, ChatLogWriter>();
         private int CurrentDay = -1;
 
         public override string ToString()
@@ -33,13 +34,12 @@ namespace Eco.Plugins.ChatLoger
         {
             ActionUtil.AddListener(this);
             CurrentDay = (int)Simulation.Time.WorldTime.Day;
-            StartLogging();
             Status = "Running";
         }
 
         public void Shutdown()
         {
-            StopLogging();
+            ClearActiveLogs();
             Status = "Shutdown";
         }
 
@@ -48,7 +48,16 @@ namespace Eco.Plugins.ChatLoger
             switch (action)
             {
                 case ChatSent chatSent:
-                    LogMessage($"{StripTags(chatSent.Citizen.Name) + ": " + StripTags(chatSent.Message)}");
+                    string logName = string.Empty;
+                    if(chatSent.Tag.StartsWith('#'))
+                    {
+                        logName = chatSent.Tag.Substring(1);
+                    }
+
+                    if (logName != string.Empty)
+                    {
+                        LogMessage(logName, $"{StripTags(chatSent.Citizen.Name) + ": " + StripTags(chatSent.Message)}");
+                    }
                     break;
 
                 default:
@@ -61,34 +70,34 @@ namespace Eco.Plugins.ChatLoger
             return new Result(ResultType.None);
         }
 
-        private void StartLogging()
+        private void ClearActiveLogs()
         {
-            Writer = new ChatLogWriter(BasePath + "//Logs//Day " + CurrentDay + ".txt", 0, CHATLOG_FLUSH_TIMER_INTERAVAL_MS);
-            Writer.Initialize();
+            foreach (ChatLogWriter writer in ChatChannelWriters.Values)
+            {
+                writer.Shutdown();
+            }
+            ChatChannelWriters.Clear();
         }
 
-        private void StopLogging()
-        {
-            Writer.Shutdown();
-        }
-
-        private void RestartLogging()
-        {
-            StopLogging();
-            StartLogging();
-        }
-
-        private void LogMessage(string message)
+        private void LogMessage(string logName, string message)
         {
             // Split log files into one per day
             int day = (int)Simulation.Time.WorldTime.Day;
             if (CurrentDay < day)
             {
                 CurrentDay = day;
-                RestartLogging();
+                ClearActiveLogs();
             }
 
-            Writer.Write(message);
+            ChatLogWriter writer = null;
+            ChatChannelWriters.TryGetValue(logName, out writer);
+            if(writer == null)
+            {
+                writer = new ChatLogWriter(BasePath + "//Logs//" + logName + "//" + " Day " + CurrentDay + ".txt", 0, CHATLOG_FLUSH_TIMER_INTERAVAL_MS);
+                writer.Initialize();
+                ChatChannelWriters.Add(logName, writer);
+            }
+            writer.Write(message);
         }
 
         private string StripTags(string toStrip)
