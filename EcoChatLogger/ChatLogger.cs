@@ -61,6 +61,8 @@ namespace Eco.Plugins.ChatLoger
 
         public void ActionPerformed(GameAction action)
         {
+            if (!ChatLogConfig.Data.Enabled) return;
+
             switch (action)
             {
                 case ChatSent chatSent:
