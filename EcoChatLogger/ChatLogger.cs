@@ -71,7 +71,7 @@ namespace Eco.Plugins.ChatLoger
                     {
                         logName = "Channel//" + chatSent.Tag.Substring(1); // Remove the #
                     }
-                    else if (chatSent.Tag.StartsWith('@')) // DM
+                    else if (ChatLogConfig.Data.LogDirectMessages && chatSent.Tag.StartsWith('@')) // DM
                     {
                         string recipientName = chatSent.Tag.Substring(1); // Remove the @
                         string senderName = chatSent.Citizen.Name;

@@ -50,6 +50,9 @@ namespace Eco.Plugins.ChatLogger
             [Description("Enable/Disable chat logging. This setting can be changed while the server is running."), Category("Misc")]
             public bool Enabled { get; set; } = false;
 
+            [Description("Enable/Disable logging of direct (Player to Player) messages. This setting can be changed while the server is running."), Category("Misc")]
+            public bool LogDirectMessages { get; set; } = false;
+
             [Description("The directory path where the chat logs will be stored. This setting can be changed while the server is running, but the existing logs will not transfer."), Category("Misc")]
             public string ChatlogPath { get; set; } = DefaultValues.ChatLogPath;
         }
