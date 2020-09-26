@@ -65,11 +65,11 @@ namespace Eco.Plugins.ChatLoger
             {
                 case ChatSent chatSent:
                     string logName = string.Empty;
-                    if(chatSent.Tag.StartsWith('#')) // Channel
+                    if (chatSent.Tag.StartsWith('#')) // Channel
                     {
                         logName = "Channel//" + chatSent.Tag.Substring(1); // Remove the #
                     }
-                    else if(chatSent.Tag.StartsWith('@')) // DM
+                    else if (chatSent.Tag.StartsWith('@')) // DM
                     {
                         string recipientName = chatSent.Tag.Substring(1); // Remove the @
                         string senderName = chatSent.Citizen.Name;
@@ -123,7 +123,7 @@ namespace Eco.Plugins.ChatLoger
 
             ChatLogWriter writer = null;
             ChatLogWriters.TryGetValue(logName, out writer);
-            if(writer == null)
+            if (writer == null)
             {
                 writer = new ChatLogWriter(ChatLogConfig.Data.ChatlogPath + logName + "\\" + "Day " + CurrentDay + ".txt", 0, CHATLOG_FLUSH_TIMER_INTERAVAL_MS);
                 writer.Initialize();
