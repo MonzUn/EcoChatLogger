@@ -2,6 +2,7 @@
 using Eco.Core.Utils;
 using Eco.Gameplay.GameActions;
 using Eco.Plugins.ChatLogger;
+using Eco.Shared.Utils;
 using System.Collections.Generic;
 using System.IO;
 using System.Text.RegularExpressions;
@@ -56,7 +57,9 @@ namespace Eco.Plugins.ChatLoger
 
                     if (logName != string.Empty)
                     {
-                        LogMessage(logName, $"{StripTags(chatSent.Citizen.Name) + ": " + StripTags(chatSent.Message)}");
+                        double seconds = Simulation.Time.WorldTime.Seconds;
+                        string time = $"{((int)TimeUtil.SecondsToHours(seconds) % 24).ToString("00") }:{((int)(TimeUtil.SecondsToMinutes(seconds) % 60)).ToString("00")}";
+                        LogMessage(logName, $"[{time}] {StripTags(chatSent.Citizen.Name) + ": " + StripTags(chatSent.Message)}");
                     }
                     break;
 
