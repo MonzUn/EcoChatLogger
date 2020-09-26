@@ -18,7 +18,7 @@ namespace Eco.Plugins.ChatLoger
         private const int CHATLOG_FLUSH_TIMER_INTERAVAL_MS = 60000; // 1 minute interval
 
         private string Status = "Uninitialized";
-        private Dictionary<string, ChatLogWriter> ChatChannelWriters = new Dictionary<string, ChatLogWriter>();
+        private readonly Dictionary<string, ChatLogWriter> ChatLogWriters = new Dictionary<string, ChatLogWriter>();
         private int CurrentDay = -1;
 
         public override string ToString()
@@ -75,11 +75,11 @@ namespace Eco.Plugins.ChatLoger
 
         private void ClearActiveLogs()
         {
-            foreach (ChatLogWriter writer in ChatChannelWriters.Values)
+            foreach (ChatLogWriter writer in ChatLogWriters.Values)
             {
                 writer.Shutdown();
             }
-            ChatChannelWriters.Clear();
+            ChatLogWriters.Clear();
         }
 
         private void LogMessage(string logName, string message)
@@ -93,12 +93,12 @@ namespace Eco.Plugins.ChatLoger
             }
 
             ChatLogWriter writer = null;
-            ChatChannelWriters.TryGetValue(logName, out writer);
+            ChatLogWriters.TryGetValue(logName, out writer);
             if(writer == null)
             {
                 writer = new ChatLogWriter(BasePath + "//Logs//" + logName + "//" + " Day " + CurrentDay + ".txt", 0, CHATLOG_FLUSH_TIMER_INTERAVAL_MS);
                 writer.Initialize();
-                ChatChannelWriters.Add(logName, writer);
+                ChatLogWriters.Add(logName, writer);
             }
             writer.Write(message);
         }
