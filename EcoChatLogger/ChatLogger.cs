@@ -95,9 +95,8 @@ namespace Eco.Plugins.ChatLoger
 
                     if (logName != string.Empty)
                     {
-                        double seconds = Simulation.Time.WorldTime.Seconds;
-                        string time = $"{((int)TimeUtil.SecondsToHours(seconds) % 24).ToString("00") }:{((int)(TimeUtil.SecondsToMinutes(seconds) % 60)).ToString("00")}";
-                        LogMessage(logName, $"[{time}] {StripTags(chatSent.Citizen.Name) + ": " + StripTags(chatSent.Message)}");
+                        
+                        LogMessage(logName, $"{StripTags(chatSent.Citizen.Name) + ": " + StripTags(chatSent.Message)}");
                     }
                     break;
 
@@ -138,7 +137,15 @@ namespace Eco.Plugins.ChatLoger
                 writer.Initialize();
                 ChatLogWriters.Add(logName, writer);
             }
-            writer.Write(message);
+            writer.Write($"[{GetTimeStamp()}] {message}");
+        }
+
+        private string GetTimeStamp()
+        {
+            double seconds = Simulation.Time.WorldTime.Seconds;
+            return $"{((int)TimeUtil.SecondsToHours(seconds) % 24).ToString("00") }" +
+                $":{((int)(TimeUtil.SecondsToMinutes(seconds) % 60)).ToString("00")}" +
+                $":{((int)seconds % 60).ToString("00")}";
         }
 
         private string StripTags(string toStrip)
