@@ -1,17 +1,18 @@
-﻿using Eco.Core.Plugins.Interfaces;
+﻿using Eco.Core.Plugins;
+using Eco.Core.Plugins.Interfaces;
 using Eco.Core.Utils;
 using Eco.Gameplay.GameActions;
 using Eco.Plugins.ChatLogger;
 using Eco.Shared.Utils;
 using System.Collections.Generic;
-using System.IO;
 using System.Text.RegularExpressions;
 
 namespace Eco.Plugins.ChatLoger
 {
-    public class ChatLogger : IModKitPlugin, IInitializablePlugin, IShutdownablePlugin, IGameActionAware
+    public class ChatLogger : IModKitPlugin, IInitializablePlugin, IShutdownablePlugin, IConfigurablePlugin, IGameActionAware
     {
-        public static string BasePath { get { return Directory.GetCurrentDirectory() + "\\Mods\\ChatLogger\\"; } }
+        public IPluginConfig PluginConfig { get { return ChatLogConfig.Instance.PluginConfig; } }
+        public ThreadSafeAction<object, string> ParamChanged { get; set; }
 
         // Eco tag matching regex: Match all characters that are used to create HTML style tags
         private static readonly Regex HTMLTagRegex = new Regex("<[^>]*>");
@@ -23,7 +24,7 @@ namespace Eco.Plugins.ChatLoger
 
         public override string ToString()
         {
-            return "ChatLogger";
+            return "Chat log";
         }
 
         public string GetStatus()
@@ -31,10 +32,24 @@ namespace Eco.Plugins.ChatLoger
             return Status;
         }
 
+        public object GetEditObject()
+        {
+            return ChatLogConfig.Data;
+        }
+
+        public void OnEditObjectChanged(object o, string param)
+        {
+            ChatLogConfig.Instance.HandleConfigChanged();
+        }
+
         public void Initialize(TimedTask timer)
         {
             ActionUtil.AddListener(this);
             CurrentDay = (int)Simulation.Time.WorldTime.Day;
+            ChatLogConfig.Instance.OnConfigChanged += (obj, args) =>
+            {
+                ClearActiveLogs();
+            };
             Status = "Running";
         }
 
@@ -110,7 +125,7 @@ namespace Eco.Plugins.ChatLoger
             ChatLogWriters.TryGetValue(logName, out writer);
             if(writer == null)
             {
-                writer = new ChatLogWriter(BasePath + "//Logs//" + logName + "//" + " Day " + CurrentDay + ".txt", 0, CHATLOG_FLUSH_TIMER_INTERAVAL_MS);
+                writer = new ChatLogWriter(ChatLogConfig.Data.ChatlogPath + logName + "\\" + "Day " + CurrentDay + ".txt", 0, CHATLOG_FLUSH_TIMER_INTERAVAL_MS);
                 writer.Initialize();
                 ChatLogWriters.Add(logName, writer);
             }

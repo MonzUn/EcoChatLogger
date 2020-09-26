@@ -43,8 +43,14 @@
     <Reference Include="netstandard">
       <HintPath>..\..\DiscordLink Dependencies\netstandard.dll</HintPath>
     </Reference>
+    <Reference Include="System.ComponentModel.Primitives">
+      <HintPath>..\..\DiscordLink Dependencies\System.ComponentModel.Primitives.dll</HintPath>
+    </Reference>
     <Reference Include="System.IO.FileSystem">
       <HintPath>..\..\DiscordLink Dependencies\System.IO.FileSystem.dll</HintPath>
+    </Reference>
+    <Reference Include="System.ObjectModel">
+      <HintPath>..\..\DiscordLink Dependencies\System.ObjectModel.dll</HintPath>
     </Reference>
     <Reference Include="System.Private.CoreLib">
       <HintPath>..\..\DiscordLink Dependencies\System.Private.CoreLib.dll</HintPath>
