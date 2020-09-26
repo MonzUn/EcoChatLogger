@@ -2,6 +2,7 @@
 using Eco.Core.Plugins.Interfaces;
 using Eco.Core.Utils;
 using Eco.Gameplay.GameActions;
+using Eco.Gameplay.Players;
 using Eco.Plugins.ChatLogger;
 using Eco.Shared.Utils;
 using System.Collections.Generic;
@@ -17,6 +18,7 @@ namespace Eco.Plugins.ChatLoger
         // Eco tag matching regex: Match all characters that are used to create HTML style tags
         private static readonly Regex HTMLTagRegex = new Regex("<[^>]*>");
         private const int CHATLOG_FLUSH_TIMER_INTERAVAL_MS = 60000; // 1 minute interval
+        private const string LOGIN_LOG_DIR = "Login";
 
         private string Status = "Uninitialized";
         private readonly Dictionary<string, ChatLogWriter> ChatLogWriters = new Dictionary<string, ChatLogWriter>();
@@ -50,6 +52,11 @@ namespace Eco.Plugins.ChatLoger
             {
                 ClearActiveLogs();
             };
+
+            UserManager.OnNewUserJoined.Add(u => LogMessage(LOGIN_LOG_DIR, $"--> {u.Name} joined the server."));
+            UserManager.OnUserLoggedIn.Add(u => LogMessage(LOGIN_LOG_DIR, $"--> {u.Name} logged in."));
+            UserManager.OnUserLoggedOut.Add(u => LogMessage(LOGIN_LOG_DIR, $"<-- {u.Name} logged out."));
+
             Status = "Running";
         }
 
