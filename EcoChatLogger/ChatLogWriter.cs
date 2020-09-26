@@ -26,6 +26,7 @@ namespace Eco.Plugins.ChatLogger
             catch (Exception e)
             {
                 Logger.Error("Error occurred while attempting to start the file writer. Error message: " + e);
+                return;
             }
 
             FlushTimer = new Timer(innerArgs =>
