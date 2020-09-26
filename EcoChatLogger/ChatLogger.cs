@@ -50,9 +50,23 @@ namespace Eco.Plugins.ChatLoger
             {
                 case ChatSent chatSent:
                     string logName = string.Empty;
-                    if(chatSent.Tag.StartsWith('#'))
+                    if(chatSent.Tag.StartsWith('#')) // Channel
                     {
-                        logName = chatSent.Tag.Substring(1);
+                        logName = "Channel//" + chatSent.Tag.Substring(1); // Remove the #
+                    }
+                    else if(chatSent.Tag.StartsWith('@')) // DM
+                    {
+                        string recipientName = chatSent.Tag.Substring(1); // Remove the @
+                        string senderName = chatSent.Citizen.Name;
+
+                        // Make sure that the names are always in the same order
+                        logName = "DM//" + (senderName.Length < recipientName.Length
+                            ? $"{senderName}-{recipientName}"
+                            : $"{recipientName}-{senderName}");
+                    }
+                    else
+                    {
+                        return;
                     }
 
                     if (logName != string.Empty)
