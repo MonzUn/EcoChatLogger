@@ -21,6 +21,7 @@ namespace Eco.Plugins.ChatLoger
         private static readonly Regex HTMLTagRegex = new Regex("<[^>]*>");
         private const int CHATLOG_FLUSH_TIMER_INTERAVAL_MS = 60000; // 1 minute interval
         private const string LOGIN_LOG_DIR = "Login";
+        private const string GENERAL_CHAT_LOG_DIR = "Channel//General";
 
         private string Status = "Uninitialized";
         private readonly Dictionary<string, ChatLogWriter> ChatLogWriters = new Dictionary<string, ChatLogWriter>();
@@ -151,6 +152,7 @@ namespace Eco.Plugins.ChatLoger
             }
 
             LogMessage(LOGIN_LOG_DIR, toLog);
+            LogMessage(GENERAL_CHAT_LOG_DIR, toLog);
         }
 
         const int NOTIFICATION_DELAY_MS = 10000;
