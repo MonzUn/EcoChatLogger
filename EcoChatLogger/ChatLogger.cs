@@ -4,9 +4,11 @@ using Eco.Core.Utils;
 using Eco.Gameplay.GameActions;
 using Eco.Gameplay.Players;
 using Eco.Plugins.ChatLogger;
+using Eco.Shared.Localization;
 using Eco.Shared.Utils;
 using System.Collections.Generic;
 using System.Text.RegularExpressions;
+using System.Threading.Tasks;
 
 namespace Eco.Plugins.ChatLoger
 {
@@ -23,6 +25,13 @@ namespace Eco.Plugins.ChatLoger
         private string Status = "Uninitialized";
         private readonly Dictionary<string, ChatLogWriter> ChatLogWriters = new Dictionary<string, ChatLogWriter>();
         private int CurrentDay = -1;
+
+        private enum LoginEventType
+        {
+            Joined,
+            Login,
+            Logout
+        }
 
         public override string ToString()
         {
@@ -53,9 +62,23 @@ namespace Eco.Plugins.ChatLoger
                 ClearActiveLogs();
             };
 
-            UserManager.OnNewUserJoined.Add(u => LogMessage(LOGIN_LOG_DIR, $"--> {u.Name} joined the server."));
-            UserManager.OnUserLoggedIn.Add(u => LogMessage(LOGIN_LOG_DIR, $"--> {u.Name} logged in."));
-            UserManager.OnUserLoggedOut.Add(u => LogMessage(LOGIN_LOG_DIR, $"<-- {u.Name} logged out."));
+            UserManager.OnNewUserJoined.Add(u =>
+            {
+                if (!ChatLogConfig.Data.Enabled) return;
+                LogLoginEvent(LoginEventType.Joined, u, $"--> {u.Name} joined the server.");
+            });
+
+            UserManager.OnUserLoggedOut.Add(u =>
+            {
+                if (!ChatLogConfig.Data.Enabled) return;
+                LogLoginEvent(LoginEventType.Logout, u, $"<-- {u.Name} logged out.");
+            });
+
+            UserManager.OnUserLoggedIn.Add(u =>
+            {
+                if (!ChatLogConfig.Data.Enabled) return;
+                LogLoginEvent(LoginEventType.Login, u, $"--> {u.Name} logged in.");
+            });
 
             Status = "Running";
         }
@@ -95,7 +118,6 @@ namespace Eco.Plugins.ChatLoger
 
                     if (logName != string.Empty)
                     {
-                        
                         LogMessage(logName, $"{StripTags(chatSent.Citizen.Name) + ": " + StripTags(chatSent.Message)}");
                     }
                     break;
@@ -119,7 +141,27 @@ namespace Eco.Plugins.ChatLoger
             ChatLogWriters.Clear();
         }
 
-        private void LogMessage(string logName, string message)
+        private void LogLoginEvent(LoginEventType eventType, User user, string toLog)
+        {
+            ChatLogConfig.ChatLogConfigData config = ChatLogConfig.Data;
+            if(eventType == LoginEventType.Joined && config.NotifyUsers <= ChatLogConfig.NotificationOption.FirstLogin
+                || (eventType == LoginEventType.Login && config.NotifyUsers <= ChatLogConfig.NotificationOption.AllLogin))
+            {
+                _ = NotifyLogSettings(user);
+            }
+
+            LogMessage(LOGIN_LOG_DIR, toLog);
+        }
+
+        const int NOTIFICATION_DELAY_MS = 10000;
+        private async Task NotifyLogSettings(User user)
+        {
+            await Task.Delay(NOTIFICATION_DELAY_MS);
+            string loggingNotification = "Logging is enabled on this server.\nThe following information is being logged:\n- Login/Logout\n- Public Chat" + (ChatLogConfig.Data.LogDirectMessages ? "\n- Private Chat" : "");
+            Gameplay.Systems.Chat.ChatManager.ServerMessageToPlayer(Localizer.DoStr(loggingNotification), user, forceTemporary: true);
+        }
+
+        private void LogMessage(string logName, string toLog)
         {
             // Split log files into one per day
             int day = (int)Simulation.Time.WorldTime.Day;
@@ -137,7 +179,7 @@ namespace Eco.Plugins.ChatLoger
                 writer.Initialize();
                 ChatLogWriters.Add(logName, writer);
             }
-            writer.Write($"[{GetTimeStamp()}] {message}");
+            writer.Write($"[{GetTimeStamp()}] {toLog}");
         }
 
         private string GetTimeStamp()

@@ -1,5 +1,4 @@
 ﻿using Eco.Core.Plugins;
-using Eco.Plugins.ChatLoger.Utilities;
 using System;
 using System.ComponentModel;
 using System.IO;
@@ -50,11 +49,21 @@ namespace Eco.Plugins.ChatLogger
             [Description("Enable/Disable chat logging. This setting can be changed while the server is running."), Category("Misc")]
             public bool Enabled { get; set; } = false;
 
+            [Description("When to notify players about what is being logged. This setting can be changed while the server is running."), Category("Misc")]
+            public NotificationOption NotifyUsers { get; set; } = NotificationOption.FirstLogin;
+
             [Description("Enable/Disable logging of direct (Player to Player) messages. This setting can be changed while the server is running."), Category("Misc")]
             public bool LogDirectMessages { get; set; } = false;
 
             [Description("The directory path where the chat logs will be stored. This setting can be changed while the server is running, but the existing logs will not transfer."), Category("Misc")]
             public string ChatlogPath { get; set; } = DefaultValues.ChatLogPath;
+        }
+
+        public enum NotificationOption
+        {
+            FirstLogin,
+            AllLogin,
+            Never
         }
     }
 }
