@@ -36,7 +36,7 @@ namespace Eco.Plugins.ChatLoger
 
         public override string ToString()
         {
-            return "Chat log";
+            return "Chat Log";
         }
 
         public string GetStatus()

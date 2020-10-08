@@ -18,7 +18,7 @@ namespace Eco.Plugins.ChatLogger
         public static ChatLogConfigData Data { get { return Instance._config.Config; } }
         public PluginConfig<ChatLogConfigData> PluginConfig { get { return Instance._config; } }
 
-        private readonly PluginConfig<ChatLogConfigData> _config = new PluginConfig<ChatLogConfigData>("Chat Log");
+        private readonly PluginConfig<ChatLogConfigData> _config = new PluginConfig<ChatLogConfigData>("ChatLog");
 
         // Explicit static constructor to tell C# compiler not to mark type as beforefieldinit
         static ChatLogConfig()
