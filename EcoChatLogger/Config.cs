@@ -61,8 +61,8 @@ namespace Eco.Plugins.ChatLogger
 
         public enum NotificationOption
         {
-            FirstLogin,
             AllLogin,
+            FirstLogin,
             Never
         }
     }
